@@ -54,18 +54,18 @@ public class OrderService {
     }
 
     private Product processNormalProduct(Product product) {
-        if (product.getAvailable() > 0) {
-            product.setAvailable(product.getAvailable() - 1);
+        if (product.isAvailable()) {
+            product.reduceAvailabilityBy1();
             return product;
-        } else if (product.getLeadTime() > 0) {
+        } else if (product.hasLeadTime()) {
             productService.notifyDelay(product.getLeadTime(), product);
         }
         return null;
     }
 
     private Product processSeasonalProduct(Product product) {
-        if (isInSeason(product) && product.getAvailable() > 0) {
-            product.setAvailable(product.getAvailable() - 1);
+        if (isInSeason(product) && product.isAvailable()) {
+            product.reduceAvailabilityBy1();
             return product;
         } else {
             productService.handleSeasonalProduct(product);
@@ -74,8 +74,8 @@ public class OrderService {
     }
 
     private Product processExpirableProduct(Product product) {
-        if (product.getAvailable() > 0 && product.getExpiryDate().isAfter(LocalDate.now())) {
-            product.setAvailable(product.getAvailable() - 1);
+        if (product.isAvailable() && product.getExpiryDate().isAfter(LocalDate.now())) {
+            product.reduceAvailabilityBy1();
             return product;
 
         } else {
