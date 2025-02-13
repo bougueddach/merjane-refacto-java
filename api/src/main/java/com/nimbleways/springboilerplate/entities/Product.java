@@ -55,4 +55,16 @@ public class Product {
         return LocalDate.now().isAfter(this.seasonStartDate) &&
                 LocalDate.now().isBefore(this.seasonEndDate);
     }
+
+    public boolean isStillValid() {
+        return this.getExpiryDate().isAfter(LocalDate.now());
+    }
+
+    public boolean willBeOutOfSeason() {
+        return LocalDate.now().plusDays(leadTime).isAfter(seasonEndDate);
+    }
+
+    public boolean isSeasonNotStarted() {
+        return seasonStartDate.isAfter(LocalDate.now());
+    }
 }
