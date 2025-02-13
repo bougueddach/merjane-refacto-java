@@ -30,9 +30,8 @@ public class MyControllerIntegrationTests {
     @Test
     public void processOrderShouldReturn() throws Exception {
         Long orderId = 1L;
-        ProcessOrderResponse mockResponse = new ProcessOrderResponse(orderId);
 
-        when(orderService.processOrder(any(Long.class))).thenReturn(mockResponse);
+        when(orderService.processOrder(any(Long.class))).thenReturn(orderId);
 
         mockMvc.perform(post("/orders/{orderId}/processOrder", orderId)
                         .contentType("application/json"))

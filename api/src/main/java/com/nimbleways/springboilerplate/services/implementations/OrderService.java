@@ -1,6 +1,5 @@
 package com.nimbleways.springboilerplate.services.implementations;
 
-import com.nimbleways.springboilerplate.dto.product.ProcessOrderResponse;
 import com.nimbleways.springboilerplate.entities.Order;
 import com.nimbleways.springboilerplate.entities.Product;
 import com.nimbleways.springboilerplate.repositories.OrderRepository;
@@ -20,7 +19,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final ProductService productService;
 
-    public ProcessOrderResponse processOrder(Long orderId) {
+    public Long processOrder(Long orderId) {
         Order order = orderRepository.findByIdOrFail(orderId);
 
         Set<Product> updatedProducts = order.getItems().stream()
@@ -32,7 +31,7 @@ public class OrderService {
             productRepository.saveAll(updatedProducts); // batch save
         }
 
-        return new ProcessOrderResponse(order.getId());
+        return order.getId();
     }
 
     private Optional<Product> processProduct(Product product) {

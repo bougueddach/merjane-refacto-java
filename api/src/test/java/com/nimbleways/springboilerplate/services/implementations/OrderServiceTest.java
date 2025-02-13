@@ -1,6 +1,5 @@
 package com.nimbleways.springboilerplate.services.implementations;
 
-import com.nimbleways.springboilerplate.dto.product.ProcessOrderResponse;
 import com.nimbleways.springboilerplate.entities.Order;
 import com.nimbleways.springboilerplate.entities.Product;
 import com.nimbleways.springboilerplate.repositories.OrderRepository;
@@ -57,10 +56,9 @@ class OrderServiceTest {
     void processOrder_ShouldReduceStockForNormalProducts_WhenAvailable() throws Exception {
         when(orderRepository.findByIdOrFail(ORDER_ID)).thenReturn(mockOrder);
 
-        ProcessOrderResponse response = orderService.processOrder(ORDER_ID);
+        Long orderId = orderService.processOrder(ORDER_ID);
 
-        assertThat(response).isNotNull();
-        assertThat(ORDER_ID).isEqualTo(response.id());
+        assertThat(ORDER_ID).isEqualTo(orderId);
 
         verify(productRepository, times(1)).saveAll(productCaptor.capture());
         Set<Product> savedProducts = productCaptor.getValue();
