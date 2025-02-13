@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.*;
 
+import static com.nimbleways.springboilerplate.entities.ProductType.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -56,7 +57,7 @@ class OrderServiceTest {
         assertThat(ORDER_ID).isEqualTo(response.id());
 
         for (Product product : mockProducts) {
-            if (product.getType().equals("NORMAL") && product.getAvailable() > 0) {
+            if (product.getType().equals(NORMAL) && product.getAvailable() > 0) {
                 assertThat(product.getAvailable()).isEqualTo(29);
 
                 verify(productRepository, times(1)).save(product);
@@ -66,7 +67,7 @@ class OrderServiceTest {
 
     @Test
     void processOrder_ShouldCallNotifyDelay_WhenNormalProductIsOutOfStock() {
-        Product outOfStockProduct = new Product(null, 15, 0, "NORMAL", "USB Dongle", null, null, null);
+        Product outOfStockProduct = new Product(null, 15, 0, NORMAL, "USB Dongle", null, null, null);
         mockOrder.setItems(Set.of(outOfStockProduct));
 
         when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
@@ -79,7 +80,7 @@ class OrderServiceTest {
 
     @Test
     void processOrder_ShouldHandleSeasonalProducts_WhenInSeason() {
-        Product seasonalProduct = new Product(null, 10, 30, "SEASONAL", "Watermelon", null, LocalDate.now().minusDays(2), LocalDate.now().plusDays(58));
+        Product seasonalProduct = new Product(null, 10, 30, SEASONAL, "Watermelon", null, LocalDate.now().minusDays(2), LocalDate.now().plusDays(58));
         mockOrder.setItems(Set.of(seasonalProduct));
 
         when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
@@ -92,7 +93,7 @@ class OrderServiceTest {
 
     @Test
     void processOrder_ShouldHandleSeasonalProducts_WhenOutOfSeason() {
-        Product outOfSeasonProduct = new Product(null, 10, 30, "SEASONAL", "Grapes", null, LocalDate.now().plusDays(180), LocalDate.now().plusDays(240));
+        Product outOfSeasonProduct = new Product(null, 10, 30, SEASONAL, "Grapes", null, LocalDate.now().plusDays(180), LocalDate.now().plusDays(240));
         mockOrder.setItems(Set.of(outOfSeasonProduct));
 
         when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
@@ -105,7 +106,7 @@ class OrderServiceTest {
 
     @Test
     void processOrder_ShouldReduceStockForExpirableProducts_WhenNotExpired() {
-        Product expirableProduct = new Product(null, 10, 30, "EXPIRABLE", "Butter", LocalDate.now().plusDays(10), null, null);
+        Product expirableProduct = new Product(null, 10, 30, EXPIRABLE, "Butter", LocalDate.now().plusDays(10), null, null);
         mockOrder.setItems(Set.of(expirableProduct));
 
         when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
@@ -118,7 +119,7 @@ class OrderServiceTest {
 
     @Test
     void processOrder_ShouldHandleExpiredProducts_WhenExpired() {
-        Product expiredProduct = new Product(null, 10, 30, "EXPIRABLE", "Milk", LocalDate.now().minusDays(5), null, null);
+        Product expiredProduct = new Product(null, 10, 30, EXPIRABLE, "Milk", LocalDate.now().minusDays(5), null, null);
         mockOrder.setItems(Set.of(expiredProduct));
 
         when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
@@ -138,12 +139,12 @@ class OrderServiceTest {
 
     private List<Product> createProducts() {
         return Arrays.asList(
-                new Product(null, 15, 30, "NORMAL", "USB Cable", null, null, null),
-                new Product(null, 10, 0, "NORMAL", "USB Dongle", null, null, null),
-                new Product(null, 15, 30, "EXPIRABLE", "Butter", LocalDate.now().plusDays(26), null, null),
-                new Product(null, 90, 6, "EXPIRABLE", "Milk", LocalDate.now().minusDays(2), null, null),
-                new Product(null, 15, 30, "SEASONAL", "Watermelon", null, LocalDate.now().minusDays(2), LocalDate.now().plusDays(58)),
-                new Product(null, 15, 30, "SEASONAL", "Grapes", null, LocalDate.now().plusDays(180), LocalDate.now().plusDays(240))
+                new Product(null, 15, 30, NORMAL, "USB Cable", null, null, null),
+                new Product(null, 10, 0, NORMAL, "USB Dongle", null, null, null),
+                new Product(null, 15, 30, EXPIRABLE, "Butter", LocalDate.now().plusDays(26), null, null),
+                new Product(null, 90, 6, EXPIRABLE, "Milk", LocalDate.now().minusDays(2), null, null),
+                new Product(null, 15, 30, SEASONAL, "Watermelon", null, LocalDate.now().minusDays(2), LocalDate.now().plusDays(58)),
+                new Product(null, 15, 30, SEASONAL, "Grapes", null, LocalDate.now().plusDays(180), LocalDate.now().plusDays(240))
         );
     }
 }

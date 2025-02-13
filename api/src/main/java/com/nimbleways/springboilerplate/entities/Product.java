@@ -25,7 +25,7 @@ public class Product {
     private Integer available;
 
     @Column(name = "type")
-    private String type;
+    private ProductType type;
 
     @Column(name = "name")
     private String name;

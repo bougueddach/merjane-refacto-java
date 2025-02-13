@@ -3,6 +3,7 @@ package com.nimbleways.springboilerplate.services.implementations;
 import com.nimbleways.springboilerplate.dto.product.ProcessOrderResponse;
 import com.nimbleways.springboilerplate.entities.Order;
 import com.nimbleways.springboilerplate.entities.Product;
+import com.nimbleways.springboilerplate.entities.ProductType;
 import com.nimbleways.springboilerplate.repositories.OrderRepository;
 import com.nimbleways.springboilerplate.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class OrderService {
         Set<Product> products = order.getItems();
 
         for (Product p : products) {
-            if (p.getType().equals("NORMAL")) {
+            if (p.getType().equals(ProductType.NORMAL)) {
                 if (p.getAvailable() > 0) {
                     p.setAvailable(p.getAvailable() - 1);
                     productRepository.save(p);
@@ -39,7 +40,7 @@ public class OrderService {
                         productService.notifyDelay(leadTime, p);
                     }
                 }
-            } else if (p.getType().equals("SEASONAL")) {
+            } else if (p.getType().equals(ProductType.SEASONAL)) {
                 if ((LocalDate.now().isAfter(p.getSeasonStartDate()) && LocalDate.now().isBefore(p.getSeasonEndDate())
                         && p.getAvailable() > 0)) {
                     p.setAvailable(p.getAvailable() - 1);
@@ -47,7 +48,7 @@ public class OrderService {
                 } else {
                     productService.handleSeasonalProduct(p);
                 }
-            } else if (p.getType().equals("EXPIRABLE")) {
+            } else if (p.getType().equals(ProductType.EXPIRABLE)) {
                 if (p.getAvailable() > 0 && p.getExpiryDate().isAfter(LocalDate.now())) {
                     p.setAvailable(p.getAvailable() - 1);
                     productRepository.save(p);
