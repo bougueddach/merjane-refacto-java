@@ -9,8 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,64 +23,54 @@ public class OrderService {
     public ProcessOrderResponse processOrder(Long orderId) {
         Order order = orderRepository.findByIdOrFail(orderId);
 
-        Set<Product> updatedProducts = new HashSet<>();
-        for (Product product : order.getItems()) {
-            Product processedProduct = processProduct(product);
-            if (processedProduct != null) {
+        Set<Product> updatedProducts = order.getItems().stream()
+                .map(this::processProduct)
+                .flatMap(Optional::stream)
+                .collect(Collectors.toSet());
 
-                updatedProducts.add(processedProduct);
-            }
-        }
         if (!updatedProducts.isEmpty()) {
-            productRepository.saveAll(updatedProducts);
+            productRepository.saveAll(updatedProducts); // batch save
         }
 
         return new ProcessOrderResponse(order.getId());
     }
 
-    private Product processProduct(Product product) {
-        switch (product.getType()) {
-            case NORMAL -> {
-                return processNormalProduct(product);
-            }
-            case SEASONAL -> {
-                return processSeasonalProduct(product);
-            }
-            case EXPIRABLE -> {
-                return processExpirableProduct(product);
-            }
-        }
-        return null;
+    private Optional<Product> processProduct(Product product) {
+        return switch (product.getType()) {
+            case NORMAL -> processNormalProduct(product);
+            case SEASONAL -> processSeasonalProduct(product);
+            case EXPIRABLE -> processExpirableProduct(product);
+        };
     }
 
-    private Product processNormalProduct(Product product) {
+    private Optional<Product> processNormalProduct(Product product) {
         if (product.isAvailable()) {
             product.reduceAvailabilityBy1();
-            return product;
+            return Optional.of(product);
         } else if (product.hasLeadTime()) {
             productService.notifyDelay(product.getLeadTime(), product);
         }
-        return null;
+        return Optional.empty();
     }
 
-    private Product processSeasonalProduct(Product product) {
+    private Optional<Product> processSeasonalProduct(Product product) {
         if (product.isInSeason() && product.isAvailable()) {
             product.reduceAvailabilityBy1();
-            return product;
+            return Optional.of(product);
         } else {
             productService.handleSeasonalProduct(product);
-            return null;
+            return Optional.empty();
         }
     }
 
-    private Product processExpirableProduct(Product product) {
+    private Optional<Product> processExpirableProduct(Product product) {
         if (product.isAvailable() && product.getExpiryDate().isAfter(LocalDate.now())) {
             product.reduceAvailabilityBy1();
-            return product;
+            return Optional.of(product);
 
         } else {
             productService.handleExpiredProduct(product);
-            return null;
+            return Optional.empty();
         }
     }
 }
