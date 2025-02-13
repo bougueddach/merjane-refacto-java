@@ -22,7 +22,6 @@ public class OrderService {
     public ProcessOrderResponse processOrder(Long orderId) {
         Order order = orderRepository.findByIdOrFail(orderId);
 
-
         Set<Product> updatedProducts = new HashSet<>();
         for (Product product : order.getItems()) {
             Product processedProduct = processProduct(product);
@@ -64,7 +63,7 @@ public class OrderService {
     }
 
     private Product processSeasonalProduct(Product product) {
-        if (isInSeason(product) && product.isAvailable()) {
+        if (product.isInSeason() && product.isAvailable()) {
             product.reduceAvailabilityBy1();
             return product;
         } else {
@@ -82,10 +81,5 @@ public class OrderService {
             productService.handleExpiredProduct(product);
             return null;
         }
-    }
-
-    private boolean isInSeason(Product product) {
-        return LocalDate.now().isAfter(product.getSeasonStartDate()) &&
-                LocalDate.now().isBefore(product.getSeasonEndDate());
     }
 }
