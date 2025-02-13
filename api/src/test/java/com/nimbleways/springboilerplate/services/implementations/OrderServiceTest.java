@@ -68,7 +68,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldCallNotifyDelay_WhenNormalProductIsOutOfStock() throws Exception {
+    void processOrder_ShouldCallNotifyDelay_WhenNormalProductIsOutOfStock() {
         Product outOfStockProduct = new Product(null, 15, 0, NORMAL, "USB Dongle", null, null, null);
         mockOrder.setItems(Set.of(outOfStockProduct));
 
@@ -81,7 +81,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldHandleSeasonalProducts_WhenInSeason() throws Exception {
+    void processOrder_ShouldHandleSeasonalProducts_WhenInSeason() {
         Product seasonalProduct = new Product(null, 10, 30, SEASONAL, "Watermelon", null, LocalDate.now().minusDays(2), LocalDate.now().plusDays(58));
         mockOrder.setItems(Set.of(seasonalProduct));
 
@@ -94,7 +94,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldHandleSeasonalProducts_WhenOutOfSeason() throws Exception {
+    void processOrder_ShouldHandleSeasonalProducts_WhenOutOfSeason() {
         Product outOfSeasonProduct = new Product(null, 10, 30, SEASONAL, "Grapes", null, LocalDate.now().plusDays(180), LocalDate.now().plusDays(240));
         mockOrder.setItems(Set.of(outOfSeasonProduct));
 
@@ -107,7 +107,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldReduceStockForExpirableProducts_WhenNotExpired() throws Exception {
+    void processOrder_ShouldReduceStockForExpirableProducts_WhenNotExpired() {
         Product expirableProduct = new Product(null, 10, 30, EXPIRABLE, "Butter", LocalDate.now().plusDays(10), null, null);
         mockOrder.setItems(Set.of(expirableProduct));
 
@@ -120,7 +120,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldHandleExpiredProducts_WhenExpired() throws Exception {
+    void processOrder_ShouldHandleExpiredProducts_WhenExpired() {
         Product expiredProduct = new Product(null, 10, 30, EXPIRABLE, "Milk", LocalDate.now().minusDays(5), null, null);
         mockOrder.setItems(Set.of(expiredProduct));
 

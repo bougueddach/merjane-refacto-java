@@ -18,7 +18,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final ProductService productService;
 
-    public ProcessOrderResponse processOrder(Long orderId) throws Exception {
+    public ProcessOrderResponse processOrder(Long orderId) {
         Order order = orderRepository.findByIdOrFail(orderId);
 
         Set<Product> products = order.getItems();
