@@ -13,11 +13,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.nimbleways.springboilerplate.entities.ProductType.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,8 +50,8 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldReduceStockForNormalProducts_WhenAvailable() {
-        when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
+    void processOrder_ShouldReduceStockForNormalProducts_WhenAvailable() throws Exception {
+        when(orderRepository.findByIdOrFail(ORDER_ID)).thenReturn(mockOrder);
 
         ProcessOrderResponse response = orderService.processOrder(ORDER_ID);
 
@@ -66,11 +68,11 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldCallNotifyDelay_WhenNormalProductIsOutOfStock() {
+    void processOrder_ShouldCallNotifyDelay_WhenNormalProductIsOutOfStock() throws Exception {
         Product outOfStockProduct = new Product(null, 15, 0, NORMAL, "USB Dongle", null, null, null);
         mockOrder.setItems(Set.of(outOfStockProduct));
 
-        when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
+        when(orderRepository.findByIdOrFail(ORDER_ID)).thenReturn(mockOrder);
 
         orderService.processOrder(ORDER_ID);
 
@@ -79,11 +81,11 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldHandleSeasonalProducts_WhenInSeason() {
+    void processOrder_ShouldHandleSeasonalProducts_WhenInSeason() throws Exception {
         Product seasonalProduct = new Product(null, 10, 30, SEASONAL, "Watermelon", null, LocalDate.now().minusDays(2), LocalDate.now().plusDays(58));
         mockOrder.setItems(Set.of(seasonalProduct));
 
-        when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
+        when(orderRepository.findByIdOrFail(ORDER_ID)).thenReturn(mockOrder);
 
         orderService.processOrder(ORDER_ID);
 
@@ -92,11 +94,11 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldHandleSeasonalProducts_WhenOutOfSeason() {
+    void processOrder_ShouldHandleSeasonalProducts_WhenOutOfSeason() throws Exception {
         Product outOfSeasonProduct = new Product(null, 10, 30, SEASONAL, "Grapes", null, LocalDate.now().plusDays(180), LocalDate.now().plusDays(240));
         mockOrder.setItems(Set.of(outOfSeasonProduct));
 
-        when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
+        when(orderRepository.findByIdOrFail(ORDER_ID)).thenReturn(mockOrder);
 
         orderService.processOrder(ORDER_ID);
 
@@ -105,11 +107,11 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldReduceStockForExpirableProducts_WhenNotExpired() {
+    void processOrder_ShouldReduceStockForExpirableProducts_WhenNotExpired() throws Exception {
         Product expirableProduct = new Product(null, 10, 30, EXPIRABLE, "Butter", LocalDate.now().plusDays(10), null, null);
         mockOrder.setItems(Set.of(expirableProduct));
 
-        when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
+        when(orderRepository.findByIdOrFail(ORDER_ID)).thenReturn(mockOrder);
 
         orderService.processOrder(ORDER_ID);
 
@@ -118,23 +120,16 @@ class OrderServiceTest {
     }
 
     @Test
-    void processOrder_ShouldHandleExpiredProducts_WhenExpired() {
+    void processOrder_ShouldHandleExpiredProducts_WhenExpired() throws Exception {
         Product expiredProduct = new Product(null, 10, 30, EXPIRABLE, "Milk", LocalDate.now().minusDays(5), null, null);
         mockOrder.setItems(Set.of(expiredProduct));
 
-        when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.of(mockOrder));
+        when(orderRepository.findByIdOrFail(ORDER_ID)).thenReturn(mockOrder);
 
         orderService.processOrder(ORDER_ID);
 
         verify(productService, times(1)).handleExpiredProduct(expiredProduct);
         verify(productRepository, never()).save(expiredProduct); // Should not reduce stock
-    }
-
-    @Test
-    void processOrder_ShouldThrowException_WhenOrderNotFound() {
-        when(orderRepository.findById(ORDER_ID)).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> orderService.processOrder(ORDER_ID));
     }
 
     private List<Product> createProducts() {

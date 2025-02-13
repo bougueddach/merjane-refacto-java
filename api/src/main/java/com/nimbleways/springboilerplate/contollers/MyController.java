@@ -15,7 +15,7 @@ public class MyController {
 
     @PostMapping("{orderId}/processOrder")
     @ResponseStatus(HttpStatus.OK)
-    public ProcessOrderResponse processOrder(@PathVariable Long orderId) {
+    public ProcessOrderResponse processOrder(@PathVariable Long orderId) throws Exception {
         return orderService.processOrder(orderId);
     }
 }
