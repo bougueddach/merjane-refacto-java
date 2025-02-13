@@ -8,6 +8,8 @@ import com.nimbleways.springboilerplate.repositories.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -40,6 +42,8 @@ class OrderServiceTest {
 
     private Order mockOrder;
     private Set<Product> mockProducts;
+    @Captor
+    ArgumentCaptor<Set<Product>> productCaptor;
 
     @BeforeEach
     void setup() {
@@ -58,13 +62,16 @@ class OrderServiceTest {
         assertThat(response).isNotNull();
         assertThat(ORDER_ID).isEqualTo(response.id());
 
-        for (Product product : mockProducts) {
-            if (product.getType().equals(NORMAL) && product.getAvailable() > 0) {
-                assertThat(product.getAvailable()).isEqualTo(29);
+        verify(productRepository, times(1)).saveAll(productCaptor.capture());
+        Set<Product> savedProducts = productCaptor.getValue();
 
-                verify(productRepository, times(1)).save(product);
-            }
-        }
+        Product usbCable = savedProducts.stream()
+                .filter(p -> p.getName().equals("USB Cable"))
+                .findFirst()
+                .orElse(null);
+
+        assertThat(usbCable).isNotNull();
+        assertThat(usbCable.getAvailable()).isEqualTo(29);
     }
 
     @Test
@@ -77,7 +84,7 @@ class OrderServiceTest {
         orderService.processOrder(ORDER_ID);
 
         verify(productService, times(1)).notifyDelay(anyInt(), eq(outOfStockProduct));
-        verify(productRepository, never()).save(outOfStockProduct); // Shouldn't save if no stock
+        verify(productRepository, never()).saveAll(List.of(outOfStockProduct));
     }
 
     @Test
@@ -89,8 +96,15 @@ class OrderServiceTest {
 
         orderService.processOrder(ORDER_ID);
 
-        assertThat(seasonalProduct.getAvailable()).isEqualTo(29); // Stock should be reduced
-        verify(productRepository, times(1)).save(seasonalProduct);
+        verify(productRepository, times(1)).saveAll(productCaptor.capture());
+        Set<Product> savedProducts = productCaptor.getValue();
+
+        Product updatedProduct = savedProducts.stream()
+                .filter(p -> p.getName().equals("Watermelon"))
+                .findFirst()
+                .orElse(null);
+
+        assertThat(updatedProduct.getAvailable()).isEqualTo(29);
     }
 
     @Test
@@ -103,7 +117,7 @@ class OrderServiceTest {
         orderService.processOrder(ORDER_ID);
 
         verify(productService, times(1)).handleSeasonalProduct(outOfSeasonProduct);
-        verify(productRepository, never()).save(outOfSeasonProduct); // Should not reduce stock
+        verify(productRepository, never()).saveAll(List.of(outOfSeasonProduct)); // Should not reduce stock
     }
 
     @Test
@@ -115,8 +129,15 @@ class OrderServiceTest {
 
         orderService.processOrder(ORDER_ID);
 
-        assertThat(expirableProduct.getAvailable()).isEqualTo(29); // Stock reduced
-        verify(productRepository, times(1)).save(expirableProduct);
+        verify(productRepository, times(1)).saveAll(productCaptor.capture());
+        Set<Product> savedProducts = productCaptor.getValue();
+
+        Product updatedProduct = savedProducts.stream()
+                .filter(p -> p.getName().equals("Butter"))
+                .findFirst()
+                .orElse(null);
+
+        assertThat(updatedProduct.getAvailable()).isEqualTo(29);
     }
 
     @Test
@@ -129,7 +150,7 @@ class OrderServiceTest {
         orderService.processOrder(ORDER_ID);
 
         verify(productService, times(1)).handleExpiredProduct(expiredProduct);
-        verify(productRepository, never()).save(expiredProduct); // Should not reduce stock
+        verify(productRepository, never()).saveAll(List.of(expiredProduct)); // Should not reduce stock
     }
 
     private List<Product> createProducts() {

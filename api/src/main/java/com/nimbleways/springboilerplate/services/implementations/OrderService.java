@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -21,45 +22,65 @@ public class OrderService {
     public ProcessOrderResponse processOrder(Long orderId) {
         Order order = orderRepository.findByIdOrFail(orderId);
 
-        Set<Product> products = order.getItems();
 
-        products.forEach(this::processProduct);
+        Set<Product> updatedProducts = new HashSet<>();
+        for (Product product : order.getItems()) {
+            Product processedProduct = processProduct(product);
+            if (processedProduct != null) {
+
+                updatedProducts.add(processedProduct);
+            }
+        }
+        if (!updatedProducts.isEmpty()) {
+            productRepository.saveAll(updatedProducts);
+        }
 
         return new ProcessOrderResponse(order.getId());
     }
 
-    private void processProduct(Product product) {
+    private Product processProduct(Product product) {
         switch (product.getType()) {
-            case NORMAL -> processNormalProduct(product);
-            case SEASONAL -> processSeasonalProduct(product);
-            case EXPIRABLE -> processExpirableProduct(product);
+            case NORMAL -> {
+                return processNormalProduct(product);
+            }
+            case SEASONAL -> {
+                return processSeasonalProduct(product);
+            }
+            case EXPIRABLE -> {
+                return processExpirableProduct(product);
+            }
         }
+        return null;
     }
 
-    private void processNormalProduct(Product product) {
+    private Product processNormalProduct(Product product) {
         if (product.getAvailable() > 0) {
             product.setAvailable(product.getAvailable() - 1);
-            productRepository.save(product);
+            return product;
         } else if (product.getLeadTime() > 0) {
             productService.notifyDelay(product.getLeadTime(), product);
         }
+        return null;
     }
 
-    private void processSeasonalProduct(Product product) {
+    private Product processSeasonalProduct(Product product) {
         if (isInSeason(product) && product.getAvailable() > 0) {
             product.setAvailable(product.getAvailable() - 1);
-            productRepository.save(product);
+            return product;
         } else {
             productService.handleSeasonalProduct(product);
+            return null;
         }
     }
 
-    private void processExpirableProduct(Product product) {
+    private Product processExpirableProduct(Product product) {
         if (product.getAvailable() > 0 && product.getExpiryDate().isAfter(LocalDate.now())) {
             product.setAvailable(product.getAvailable() - 1);
-            productRepository.save(product);
+            return product;
+
         } else {
             productService.handleExpiredProduct(product);
+            return null;
         }
     }
 
