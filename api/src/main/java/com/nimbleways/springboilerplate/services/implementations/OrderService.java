@@ -19,6 +19,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final ProductService productService;
 
+    // Ideally I will use the strategy pattern as seen in the other ready classes but for sake of time didn't do it
     public Long processOrder(Long orderId) {
         Order order = orderRepository.findByIdOrFail(orderId);
 

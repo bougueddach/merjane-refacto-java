@@ -1,6 +1,5 @@
 package com.nimbleways.springboilerplate.controllers;
 
-import com.nimbleways.springboilerplate.dto.product.ProcessOrderResponse;
 import com.nimbleways.springboilerplate.services.implementations.OrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -24,7 +24,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class OrderServiceTest {
+class ProductProcessorETest {
 
     public static final long ORDER_ID = 1L;
     @Mock
